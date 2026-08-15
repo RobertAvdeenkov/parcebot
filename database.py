@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 url="postgresql+asyncpg://neondb_owner:npg_LEVInm0Za6Jf@ep-muddy-meadow-axsen04k-pooler.c-4.us-east-2.aws.neon.tech/neondb"
-engine=create_async_engine(url,connect_args={'ssl':True, 'ssl_require':True})
+engine=create_async_engine(url,connect_args={'ssl':True})
 SessionLocal=sessionmaker(bind=engine,class_=AsyncSession, expire_on_commit=False) #type:ignore
 
 async def get_db():
