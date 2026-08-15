@@ -5,8 +5,7 @@ from models import Base
 import tasks
 
 app=FastAPI()
-DATABASE_URL=os.getenv('DATABASE_URL', 'sqlite:///monitor.db')
-url=DATABASE_URL.replace('+asyncpg','')
+url='postgresql://neondb_owner:npg_LEVInm0Za6Jf@ep-muddy-meadow-axsen04k-pooler.c-4.us-east-2.aws.neon.tech/neondb'
 engine=create_engine(url)
 Base.metadata.create_all(engine)
 
