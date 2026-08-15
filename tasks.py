@@ -7,8 +7,6 @@ from database import get_db
 import bcrypt
 from auth import *
 from fastapi.responses import Response
-from fastapi.templating import Jinja2Templates
-import requests
 import asyncio
 from asyncio import create_task
 import httpx
