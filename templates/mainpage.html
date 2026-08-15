@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервис мониторинга сайтов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .form-row input, .form-row select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            flex: 1 1 150px;
+        }
+        .form-row button {
+            padding: 10px 24px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 10px 24px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-row button:hover {
+            background: #27ae60;
+        }
+        .site-list {
+            display: grid;
+            gap: 12px;
+        }
+        .site-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 6px solid #95a5a6;
+        }
+        .site-item.up {
+            border-left-color: #2ecc71;
+        }
+        .site-item.down {
+            border-left-color: #e74c3c;
+        }
+        .site-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .site-name {
+            font-weight: 600;
+        }
+        .site-url {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .site-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .badge.up {
+            background: #d5f5e3;
+            color: #1e8449;
+        }
+        .badge.down {
+            background: #fadbd8;
+            color: #922b21;
+        }
+        .badge.unknown {
+            background: #eaecee;
+            color: #5d6d7e;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .history {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #34495e;
+            background: #f0f2f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .history span {
+            display: inline-block;
+            margin-right: 12px;
+        }
+        .status-ok {
+            color: #27ae60;
+        }
+        .status-fail {
+            color: #e74c3c;
+        }
+        #message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+        #message.success {
+            background: #d5f5e3;
+            color: #1e8449;
+            display: block;
+        }
+        #message.error {
+            background: #fadbd8;
+            color: #922b21;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔍 Мониторинг сайтов</h1>
+
+    <div class="card">
+        <h3>➕ Добавить сайт</h3>
+        <div class="form-row">
+            <input type="text" id="siteName" placeholder="Название (например, Google)">
+            <input type="text" id="siteUrl" placeholder="https://example.com">
+            <select id="siteInterval">
+                <option value="1">1 минута</option>
+                <option value="5" selected>5 минут</option>
+                <option value="15">15 минут</option>
+                <option value="30">30 минут</option>
+            </select>
+            <button id="addBtn">➕ Добавить</button>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <div class="card">
+        <h3>📋 Мои сайты</h3>
+        <div id="siteList" class="site-list">
+            <p>Загрузка...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = new URLSearchParams(window.location.search).get('token') || localStorage.getItem('token');
+
+    if (!token) {
+        document.getElementById('siteList').innerHTML = '<p>⚠️ Вы не авторизованы. Передайте токен в URL: ?token=ваш_токен</p>';
+    }
+
+    function showMessage(text, type = 'success') {
+        const el = document.getElementById('message');
+        el.textContent = text;
+        el.className = type;
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    async function fetchSites() {
+        const container = document.getElementById('siteList');
+        try {
+            const response = await fetch('/showsites', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!response.ok) {
+                container.innerHTML = '<p>Ошибка загрузки.</p>';
+                return;
+            }
+            const sites = await response.json();
+            
+            container.innerHTML = sites['text'];
+        } catch (e) {
+            container.innerHTML = '<p>Ошибка соединения.</p>';
+        }
+    }
+
+    document.getElementById('addBtn').addEventListener('click', async () => {
+        const name = document.getElementById('siteName').value.trim();
+        const url = document.getElementById('siteUrl').value.trim();
+        const interval = parseInt(document.getElementById('siteInterval').value);
+
+        if (!name || !url) {
+            showMessage('Заполните название и URL', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/sites', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ 'name':name, 'url':url, 'interval':interval })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                showMessage('Сайт добавлен');
+                document.getElementById('siteName').value = '';
+                document.getElementById('siteUrl').value = '';
+                fetchSites();
+            } else {
+                showMessage(data.detail || 'Ошибка добавления', 'error');
+            }
+        } catch (e) {
+            showMessage('Ошибка соединения', 'error');
+        }
+    });
+
+    async function deleteSite(id) {
+        if (!confirm('Удалить сайт?')) return;
+        try {
+            const response = await fetch(`/sites/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (response.ok) {
+                showMessage('Сайт удалён');
+                fetchSites();
+            } else {
+                showMessage('Ошибка удаления', 'error');
+            }
+        } catch (e) {
+            showMessage('Ошибка соединения', 'error');
+        }
+    }
+
+    async function loading() {
+        try {
+            const response = await fetch(`/upgrade`, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            return;
+        }
+        catch{alert('Произошла ошибка')
+            return;
+        }
+    }
+
+    async function loadSites() {
+        try {
+            const response = await fetch('/showsites', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await response.json();
+            document.getElementById('sites-container').innerHTML = data.text;
+        } catch (e) {
+            console.error('Ошибка обновления:', e);
+        }
+    }
+
+    // Обновляем каждые 5 секунд
+
+
+    // Загружаем сайты при открытии
+    loading();
+    setInterval(fetchSites,5000)
+    fetchSites();
+</script>
+</body>
+</html>
