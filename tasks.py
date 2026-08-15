@@ -140,7 +140,7 @@ async def delete(data=Body(), db:AsyncSession=Depends(get_db), token=Cookie()):
     if not(user):
         raise HTTPException(404, 'Такого пользователя нет!')
     us=user[0]
-
+    print("DATA", data)
     ex1=select(Site).filter(Site.id==data['id'])
     res=await (db.execute(ex1))
     s=res.first()
