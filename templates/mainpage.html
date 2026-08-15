@@ -257,8 +257,8 @@
         try {
             const response = await fetch(`/sites/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + token },
-                body:JSON.stringify({'id':id})
+                headers: { 'Authorization': 'Bearer ' + token , 'Content-Type': 'application/json'},
+                body: JSON.stringify({ 'id': id })
             });
             if (response.ok) {
                 showMessage('Сайт удалён');

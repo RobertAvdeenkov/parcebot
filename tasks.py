@@ -132,7 +132,7 @@ async def append(token=Cookie(), db:AsyncSession=Depends(get_db), data=Body()):
     return {'sites':'success'}
 
 @router.delete('/sites/{id}')
-async def delete(data:dict=Body(), db:AsyncSession=Depends(get_db), token=Cookie()):
+async def delete(id:int, db:AsyncSession=Depends(get_db), token=Cookie()):
     name=get_by_token(token)
     ex=select(User).filter(User.name==name)
     res=await (db.execute(ex))
@@ -140,8 +140,7 @@ async def delete(data:dict=Body(), db:AsyncSession=Depends(get_db), token=Cookie
     if not(user):
         raise HTTPException(404, 'Такого пользователя нет!')
     us=user[0]
-    print("DATA", data)
-    ex1=select(Site).filter(Site.id==data['id'])
+    ex1=select(Site).filter(Site.id==id)
     res=await (db.execute(ex1))
     s=res.first()
     if not(s):
