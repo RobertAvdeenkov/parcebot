@@ -6,7 +6,8 @@ import tasks
 
 app=FastAPI()
 DATABASE_URL=os.getenv('DATABASE_URL', 'sqlite:///monitor.db')
-engine=create_engine(DATABASE_URL)
+url=DATABASE_URL.replace('+asyncpg','')
+engine=create_engine(url)
 Base.metadata.create_all(engine)
 
 app.include_router(tasks.router)
