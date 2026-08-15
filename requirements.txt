@@ -6,3 +6,4 @@ python-jose[cryptography]
 python-dotenv
 uvicorn
 psycopg2
+asyncpg
