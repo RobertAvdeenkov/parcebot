@@ -132,7 +132,7 @@ async def append(token=Cookie(), db:AsyncSession=Depends(get_db), data=Body()):
     return {'sites':'success'}
 
 @router.delete('/sites/{id}')
-async def delete(data=Body(), db:AsyncSession=Depends(get_db), token=Cookie()):
+async def delete(data:dict=Body(), db:AsyncSession=Depends(get_db), token=Cookie()):
     name=get_by_token(token)
     ex=select(User).filter(User.name==name)
     res=await (db.execute(ex))
